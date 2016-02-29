@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using ClientAsync;
-
+using Di = System.Diagnostics;
 namespace WebTestLongTask
 {
     public partial class Default : System.Web.UI.Page
@@ -20,12 +20,11 @@ namespace WebTestLongTask
         {
 
             if (!Page.IsPostBack)
-            {
-                Func<CancellationToken, Task> fn = LongRunningTask;
+            {                
                 HostingEnvironment.QueueBackgroundWorkItem(canc => LongRunningTask(Cancelation.Token));
             }
 
-            Trace.Write(string.Format("Default page. Load finished. Postback: {0}", IsPostBack));
+            Di.Trace.WriteLine(string.Format("Default page. Load finished. Postback: {0}", IsPostBack));
         }
 
 
@@ -33,7 +32,7 @@ namespace WebTestLongTask
         {
             try
             {
-                Trace.Write("Long running task started");
+                Di.Trace.Write("Long running task started");
 
                 using (var client = new Client(ClientAsync.Helper.GetLocalIpv4(), 11000))
                 {
@@ -46,31 +45,36 @@ namespace WebTestLongTask
 
                         string command = string.Format("Sending message {0}", i);
                         string response;
-                        
-                        client.SendMessageToServer(command, out response);
-                        Trace.Write("Message sent to server");
-                        Trace.Write(string.Format("{0} > {1}", command, response));
+
+                        if (client.SendMessageToServer(command, out response))
+                        {
+                            Di.Trace.WriteLine("Message sent to server");
+                            Di.Trace.WriteLine(string.Format("{0} > {1}", command, response));
+                        }
+                        else
+                        {
+                            Di.Trace.WriteLine("Can't send message to server. Probably error in communication");
+                            Di.Trace.WriteLine("Ending long running task.");
+                            break;                            
+                        }
                     }
                     client.Close();
                 }
-
-
-
             }
             catch (Exception e)
             {
 
-                Trace.Write("Error in long running task");
-                Trace.Write(e.Message);
-                Trace.Write(e.StackTrace);
+                Di.Trace.WriteLine("Error in long running task");
+                Di.Trace.WriteLine(e.Message);
+                Di.Trace.WriteLine(e.StackTrace);
             }
             return Task.FromResult(true);
-
         }
 
         protected void CancelTask(object sender, EventArgs e)
         {
             Cancelation.Cancel();
+            Di.Trace.WriteLine("Task cancelled.");
         }
     }
 }

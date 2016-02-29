@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WebTest3 {
+namespace WebTestOneThread {
     
     
     public partial class Default {

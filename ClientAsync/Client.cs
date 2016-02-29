@@ -13,12 +13,14 @@ namespace ClientAsync
     public class Client : IDisposable
     {
         private readonly Socket _client;
-        public int ServerPort { get; private set; }
-        public IPAddress ServerIpAddress;
 
+        private readonly int _timeout = 5000;
         private ManualResetEvent _connectDone = new ManualResetEvent(false);
         private ManualResetEvent _sendDone = new ManualResetEvent(false);
         private ManualResetEvent _receiveDone = new ManualResetEvent(false);
+
+        public int ServerPort { get; private set; }
+        public IPAddress ServerIpAddress;
 
         public Client(IPAddress serverAddress, int port)
         {
@@ -30,11 +32,22 @@ namespace ClientAsync
         public void Connect()
         {
             // Connect to the remote endpoint.
-            _client.BeginConnect(new IPEndPoint(ServerIpAddress, ServerPort), new AsyncCallback(ConnectCallback), null);
-            _connectDone.WaitOne();
+            try
+            {
+                _client.BeginConnect(new IPEndPoint(ServerIpAddress, ServerPort), ConnectCallback, null);
+                _connectDone.WaitOne(_timeout);
+            }
+            catch (Exception exp)
+            {
+                Trace.WriteLine("Error while connecting to server.");
+                Trace.WriteLine(exp);
+                Close();
+                throw;
+            }
+            
         }
 
-        public void SendMessageToServer(string message, out string response)
+        public bool SendMessageToServer(string message, out string response)
         {
             response = string.Empty;
             try
@@ -44,51 +57,60 @@ namespace ClientAsync
                     byte[] byteData = Encoding.ASCII.GetBytes(message);
 
                     // Begin sending the data to the remote device.
-                    _client.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, null);
-                    _sendDone.WaitOne();
+                    _client.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, message);
+                    _sendDone.WaitOne(_timeout);
 
                     StateObject state = new StateObject();
                     _client.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReceiveCallback, state);
-                    _receiveDone.WaitOne();
+                    _receiveDone.WaitOne(_timeout);
 
                     response = state.CommandBuilder.ToString();
                     _sendDone.Reset();
                     _receiveDone.Reset();
+                    return true;
                 }
             }
             catch (Exception ex)
             {
+                Trace.WriteLine("Error in communication with server.");
                 Trace.WriteLine(ex);
+                Close();
             }
-
+            return false;
         }
 
         public void Close()
         {
-            // Release the socket.
-            _client.Shutdown(SocketShutdown.Both);
-            _client.Close();
+            try
+            {
+                // Release the socket.
+                _client.Shutdown(SocketShutdown.Both);
+                _client.Close();
 
-            _connectDone.Close();
-            _receiveDone.Close();
-            _sendDone.Close();
+                _connectDone.Close();
+                _receiveDone.Close();
+                _sendDone.Close();
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         private void SendCallback(IAsyncResult ar)
         {
             try
-            {
-                // Retrieve the socket from the state object.
-                // Socket client = (Socket)ar.AsyncState;
-
+            {                
                 // Complete sending the data to the remote device.
                 int bytesSent = _client.EndSend(ar);
+                Trace.WriteLine(String.Format("Sent to server: {0}", ar.AsyncState));
                 Trace.WriteLine(String.Format("Sent {0} bytes to server.", bytesSent));
 
                 _sendDone.Set(); // Signal that all bytes have been sent.
             }
             catch (Exception e)
-            {
+            {                
+                Trace.WriteLine("Error while sending data:");
                 Trace.WriteLine(e);
             }
         }
@@ -110,10 +132,12 @@ namespace ClientAsync
                         return;
                     }
                 }
+                Trace.WriteLine(String.Format("Received response {0}", state.CommandBuilder));
                 _receiveDone.Set();
             }
             catch (Exception e)
-            {
+            {             
+                Trace.WriteLine("Error while receiving data:");
                 Trace.WriteLine(e.ToString());
             }
         }
@@ -121,22 +145,22 @@ namespace ClientAsync
         private void ConnectCallback(IAsyncResult ar)
         {
             try
-            {
-                // Retrieve the socket from the state object.
-                //Socket client = (Socket)ar.AsyncState;                
+            {                
                 _client.EndConnect(ar);
 
                 Trace.WriteLine(string.Format("Socket connected to {0}", _client.RemoteEndPoint));
                 _connectDone.Set();
             }
             catch (Exception e)
-            {
+            {             
+                Trace.WriteLine("Error while connecting:");
                 Trace.WriteLine(e.ToString());
             }
         }
 
         public void Dispose()
         {
+
             _client.Close();
             _client.Dispose();
 

@@ -1,26 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Security;
-using System.Web.SessionState;
+using System.Diagnostics;
 using System.Threading;
-using System.IO;
 
-namespace WebTest3
+namespace WebTestOneThread
 {
     public class Global : System.Web.HttpApplication
-    {
-        //TODO Change path!
-        private const string FilePath = @"D:\DEV_TST\MASA\ProofOfConcept\WebTestOneThread\Log\Exception.txt";
+    {        
         private const int HandledExceptionBreakModulo = 13;
         private const int UnhandledExceptionBreakModulo = 47;
 
         protected void Application_Start(object sender, EventArgs e)
         {
             Application["Counter"] = 0;
-            File.AppendAllText(FilePath, string.Format("{0}*******************{0}Application restarted.{0}", Environment.NewLine));
-
+            Trace.WriteLine(string.Format("{0}*******************{0}Application restarted.", Environment.NewLine));            
             StartDaemon();
         }
 
@@ -28,14 +20,14 @@ namespace WebTest3
         {
             Thread t = new Thread(new ThreadStart(Childthreadcall)) {IsBackground = true};
             t.Start();
-            File.AppendAllText(FilePath, string.Format("{0}------------------{0}Thread started.{0}", Environment.NewLine));            
+            Trace.WriteLine(string.Format("{0}------------------{0}Thread started.", Environment.NewLine));            
         }
 
 
         void Application_Error(object sender, EventArgs e)
         {
             //This will never happend.
-            File.AppendAllText(FilePath, string.Format("{0}------------------{0}Application error handler.{0}", Environment.NewLine));
+            Trace.WriteLine(string.Format("{0}------------------{0}Application error handler.", Environment.NewLine));            
         }
 
         private void Childthreadcall()
@@ -48,13 +40,11 @@ namespace WebTest3
 
                 if (counter % UnhandledExceptionBreakModulo == 0)
                 {
-                    //This error crash whole application.
-                    //Unhandled exception
+                    //This error crash whole application - Unhandled exception
                     var ex = new Exception("Unhandled fake exception. Simulation of unhandled exception.");
-                    File.AppendAllText(FilePath, string.Format("{1}=============={1}Fatal {1}Last counter: {0}{1}{2}{1}{3}{1}", counter, Environment.NewLine, ex.Message, ex.StackTrace));
+                    Trace.WriteLine(string.Format("{1}=============={1}Fatal {1}Last counter: {0}{1}{2}{1}{3}", counter, Environment.NewLine, ex.Message, ex.StackTrace));                    
                     throw ex;
                 }
-
                 try
                 {                    
                     Application["Counter"] = counter;
@@ -64,7 +54,8 @@ namespace WebTest3
                 }
                 catch (Exception ex)
                 {
-                    File.AppendAllText(FilePath, string.Format("{1}/////////////{1}Exception{1}Last counter: {0}{1}{2}{1}{3}{1}", counter, Environment.NewLine, ex.Message, ex.StackTrace));
+                    Trace.WriteLine(string.Format("{1}/////////////{1}Exception{1}Last counter: {0}{1}{2}{1}{3}", counter, Environment.NewLine, ex.Message, ex.StackTrace));
+                    
                 }
             } while (true);
         }  
