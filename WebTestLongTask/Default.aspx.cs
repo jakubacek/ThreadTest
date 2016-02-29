@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.EnterpriseServices;
 using System.Linq;
 using System.Web;
 using System.Web.UI;
@@ -13,7 +14,7 @@ namespace WebTestLongTask
 {
     public partial class Default : System.Web.UI.Page
     {
-        protected static CancellationTokenSource Cancelation = new CancellationTokenSource();
+        protected static CancellationTokenSource LongTaskCancelation = new CancellationTokenSource();        
 
 
         protected void Page_Load(object sender, EventArgs e)
@@ -21,15 +22,16 @@ namespace WebTestLongTask
 
             if (!Page.IsPostBack)
             {                
-                HostingEnvironment.QueueBackgroundWorkItem(canc => LongRunningTask(Cancelation.Token));
+                HostingEnvironment.QueueBackgroundWorkItem(iisReset => LongRunningTask(iisReset));
             }
 
             Di.Trace.WriteLine(string.Format("Default page. Load finished. Postback: {0}", IsPostBack));
         }
 
 
-        protected Task LongRunningTask(CancellationToken token)
+        protected Task LongRunningTask(CancellationToken issResetToken)
         {
+            CancellationToken manualCancelation = LongTaskCancelation.Token;
             try
             {
                 Di.Trace.Write("Long running task started");
@@ -40,7 +42,7 @@ namespace WebTestLongTask
                     for (int i = 0; i < 10000; i++)
                     {
                         
-                        if (token.IsCancellationRequested)
+                        if (issResetToken.IsCancellationRequested || manualCancelation.IsCancellationRequested)
                             break;
 
                         string command = string.Format("Sending message {0}", i);
@@ -68,12 +70,12 @@ namespace WebTestLongTask
                 Di.Trace.WriteLine(e.Message);
                 Di.Trace.WriteLine(e.StackTrace);
             }
-            return Task.FromResult(true);
+            return Task.FromResult(false);
         }
 
         protected void CancelTask(object sender, EventArgs e)
         {
-            Cancelation.Cancel();
+            LongTaskCancelation.Cancel();
             Di.Trace.WriteLine("Task cancelled.");
         }
     }
