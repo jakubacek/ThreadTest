@@ -1,4 +1,6 @@
 ~
+.vs/
+packages/
 build/
 [Bb]in
 [Dd]ebug*/
