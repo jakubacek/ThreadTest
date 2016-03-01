@@ -13,12 +13,30 @@ namespace WebTestHangfire {
     public partial class _Default {
         
         /// <summary>
-        /// btnStartClient control.
+        /// btbStartFeed control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnStartClient;
+        protected global::System.Web.UI.WebControls.Button btbStartFeed;
+        
+        /// <summary>
+        /// btnStartCommunication control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnStartCommunication;
+        
+        /// <summary>
+        /// btnTestCommunication control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnTestCommunication;
     }
 }

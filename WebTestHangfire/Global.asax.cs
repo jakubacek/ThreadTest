@@ -14,6 +14,7 @@ namespace WebTestHangfire
     {
         void Application_Start(object sender, EventArgs e)
         {
+            Helper.TraceLine("Application started.");
             // Code that runs on application startup
             AreaRegistration.RegisterAllAreas();
             RouteConfig.RegisterRoutes(RouteTable.Routes);

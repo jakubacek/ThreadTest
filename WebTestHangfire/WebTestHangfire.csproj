@@ -200,7 +200,9 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Site.Master" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Bundle.config" />
     <Content Include="packages.config">
       <SubType>Designer</SubType>
@@ -239,16 +241,15 @@
       <DependentUpon>Site.Master</DependentUpon>
     </Compile>
     <Compile Include="Startup.cs" />
-    <Compile Include="Tools\RssReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClientAsync\ClientAsync.csproj">
-      <Project>{2276fb54-6e2f-4c9a-95d9-3ecffea61ae4}</Project>
-      <Name>ClientAsync</Name>
+    <ProjectReference Include="..\WebTestHangFireTasks\WebTestHangFireTasks.csproj">
+      <Project>{137a5b6a-6150-40a6-9b2e-cef0d6b4bbf2}</Project>
+      <Name>WebTestHangFireTasks</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
