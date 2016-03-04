@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebTestHangfire", "WebTestHangfire\WebTestHangfire.csproj", "{53B02F0C-7D10-4E62-A844-4980EFD8B3C2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebTestHangFireTasks", "WebTestHangFireTasks\WebTestHangFireTasks.csproj", "{137A5B6A-6150-40A6-9B2E-CEF0D6B4BBF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientSync", "ClientSync\ClientSync.csproj", "{1EA0E0D9-54C1-4D75-8769-C86C406E4BA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{137A5B6A-6150-40A6-9B2E-CEF0D6B4BBF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{137A5B6A-6150-40A6-9B2E-CEF0D6B4BBF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{137A5B6A-6150-40A6-9B2E-CEF0D6B4BBF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EA0E0D9-54C1-4D75-8769-C86C406E4BA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EA0E0D9-54C1-4D75-8769-C86C406E4BA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EA0E0D9-54C1-4D75-8769-C86C406E4BA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EA0E0D9-54C1-4D75-8769-C86C406E4BA7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
