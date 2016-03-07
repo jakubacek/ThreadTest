@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ClientAsync;
+using Client;
 
 namespace WebTestHangFireTasks
 {
@@ -37,13 +37,13 @@ namespace WebTestHangFireTasks
         public static void SendMessagesToServer(IEnumerable<string> messages)
         {
             Helper.TraceLine("Started SendMessagesToClient Task");
-            using (var client = new Client(ClientAsync.Helper.GetLocalIpv4(), 11000))
+            using (var client = new BlockClient(Client.Helper.GetLocalIpv4(), 11000))
             {
                 client.Connect();
                 foreach (var message in messages)
                 {
                     string response;
-                    client.SendMessageToServer(message, out response);
+                    client.Send(message, out response);
                     Thread.Sleep(500);
                     Helper.TraceLine("SendMessagesToClient(...{0}{1} > {2}", Environment.NewLine, message, response);
                 }

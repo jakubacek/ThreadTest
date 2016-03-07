@@ -47,9 +47,9 @@
     <Compile Include="TaskRepo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClientAsync\ClientAsync.csproj">
+    <ProjectReference Include="..\Client\Client.csproj">
       <Project>{2276fb54-6e2f-4c9a-95d9-3ecffea61ae4}</Project>
-      <Name>ClientAsync</Name>
+      <Name>Client</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
