@@ -89,10 +89,11 @@ namespace WebTestLongTask
 
                 if (workerType == WorkerType.StartThread)
                 {
-                    clients = new List<IClient>(workerAmount) { GetClient(clientType) };
+                    clients = new List<IClient>(workerAmount);
                     var threadList = new List<Thread>(workerAmount);
                     for (int i = 0; i < workerAmount; i++)
                     {
+                        clients.Add(GetClient(clientType));
                         var st = new WorkerState
                         {
                             Client = clients[i],
@@ -112,12 +113,12 @@ namespace WebTestLongTask
                         th.Join();
                     }
                 }
-
-                if (workerType == WorkerType.StartThreadPool)
+                else if (workerType == WorkerType.StartThreadPool)
                 {
-                    clients = new List<IClient>(workerAmount) { GetClient(clientType) };
+                    clients = new List<IClient>(workerAmount);                    
                     for (int i = 0; i < workerAmount; i++)
                     {
+                        clients.Add(GetClient(clientType));
                         var st = new WorkerState
                         {
                             Client = clients[i],
@@ -130,7 +131,52 @@ namespace WebTestLongTask
                     }
                     ManualResetEvent[] eve = states.Where(s => s != null).Select(s => s.Event).ToArray();
                     WaitHandle.WaitAll(eve);
+                }
 
+                else if (workerType == WorkerType.StartTask)
+                {
+                    clients = new List<IClient>(workerAmount);
+                    var taskList = new List<Task>();
+                    CancellationTokenSource cts = new CancellationTokenSource();
+                    var factory = new TaskFactory(cts.Token, TaskCreationOptions.LongRunning, TaskContinuationOptions.LongRunning, null);
+                    for (int i = 0; i < workerAmount; i++)
+                    {
+                        clients.Add(GetClient(clientType));
+                        var st = new WorkerState
+                        {
+                            Client = clients[i],
+                            SleepTime = sleepTime,
+                            WorkerId = "ThreadPool " + i,
+                            Event = new ManualResetEvent(false)
+                        };
+                        taskList.Add(factory.StartNew(RunCommunicationInThread, st, cts.Token));
+                        Task.WaitAll(taskList.ToArray());
+                    }
+                }
+
+                else if (workerType == WorkerType.QueueTask)
+                {
+                    clients = new List<IClient>(workerAmount);
+
+                    CancellationTokenSource cts = new CancellationTokenSource();
+                    var factory = new TaskFactory(cts.Token, TaskCreationOptions.LongRunning,
+                        TaskContinuationOptions.LongRunning, null);
+                    for (int i = 0; i < workerAmount; i++)
+                    {
+                        clients.Add(GetClient(clientType));
+                        var st = new WorkerState
+                        {
+                            Client = clients[i],
+                            SleepTime = sleepTime,
+                            WorkerId = "ThreadPool " + i,
+                            Event = new ManualResetEvent(false)
+                        };
+                        HostingEnvironment.QueueBackgroundWorkItem(ct => RunCommunicationInThread(st));
+                        states.Add(st);
+                    }
+
+                    ManualResetEvent[] eve = states.Where(s => s != null).Select(s => s.Event).ToArray();
+                    WaitHandle.WaitAll(eve);
                 }
 
                 watch.Stop();
@@ -194,7 +240,7 @@ namespace WebTestLongTask
 
                 if (client.IsConnected)
                 {
-                    for (int i = 0; i < 100000; i++)
+                    for (int i = 0; i < 10000; i++)
                     {
                         string response;
                         if (!client.Send(string.Format("Testing message {0}", i), out response))
@@ -215,6 +261,7 @@ namespace WebTestLongTask
             ev.Set();
         }
 
+
     }
 
 
@@ -227,8 +274,7 @@ namespace WebTestLongTask
     }
 
     enum WorkerType
-    {
-        QueueThread,
+    {        
         QueueTask,
         StartTask,
         StartThread,
