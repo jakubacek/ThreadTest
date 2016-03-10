@@ -9,7 +9,9 @@
 <body>
     <form id="form1" runat="server">
     <div>        
-
+        Server Ips:
+        <asp:TextBox runat="server" ID="txtIpaddress" Text="127.0.0.1"></asp:TextBox>
+        <br/>
       Worker type:
           <asp:RadioButtonList runat="server" ID="rbtWorkerType">            
             <asp:ListItem Text="Queue tasks" Selected="True" Value="0"></asp:ListItem>
@@ -23,9 +25,9 @@
             <asp:ListItem Text="Client" Selected="True" Value="0"></asp:ListItem>
             <asp:ListItem Text="Client async" Value="1"></asp:ListItem>            
         </asp:RadioButtonList>
-       Worker amount: <asp:TextBox runat="server" Text="50" ID="txtWorkerAmount"></asp:TextBox>
+       Worker amount: <asp:TextBox runat="server" Text="64" ID="txtWorkerAmount"></asp:TextBox>
         <br/>
-       Sleep time ms: <asp:TextBox runat="server" Text="50" ID="txtSleepTime"></asp:TextBox>
+       Sleep time ms: <asp:TextBox runat="server" Text="20" ID="txtSleepTime"></asp:TextBox>
         <br/>
         <asp:Button runat="server" OnClick="StartTask" Text="START"/>
         <asp:Button runat="server" OnClick="CancelTask" Text="STOP"/>

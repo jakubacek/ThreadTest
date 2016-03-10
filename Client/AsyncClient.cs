@@ -106,10 +106,7 @@ namespace Client
             try
             {
                 // Complete sending the data to the remote device.
-                int bytesSent = _client.EndSend(ar);
-                Trace.WriteLine(String.Format("Sent to server: {0}", ar.AsyncState));
-                Trace.WriteLine(String.Format("Sent {0} bytes to server.", bytesSent));
-
+                int bytesSent = _client.EndSend(ar);                
                 _sendDone.Set(); // Signal that all bytes have been sent.
             }
             catch (Exception e)
@@ -135,8 +132,7 @@ namespace Client
                         _client.BeginReceive(state.Buffer, 0, state.Buffer.Length, 0, ReceiveCallback, state);
                         return;
                     }
-                }
-                Trace.WriteLine(String.Format("Received response {0}", state.CommandBuilder));
+                }                
                 _receiveDone.Set();
             }
             catch (Exception e)
@@ -152,7 +148,7 @@ namespace Client
             {
                 _client.EndConnect(ar);
 
-                Trace.WriteLine(string.Format("Socket connected to {0}", _client.RemoteEndPoint));
+                //TreTrace.WriteLine(string.Format("Socket connected to {0}", _client.RemoteEndPoint));
                 _connectDone.Set();
             }
             catch (Exception e)

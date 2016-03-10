@@ -42,15 +42,15 @@ namespace Client
             }
             catch (ArgumentNullException ane)
             {
-                Console.WriteLine("ArgumentNullException : {0}", ane);
+                Trace.WriteLine(string.Format("ArgumentNullException : {0}", ane));
             }
             catch (SocketException se)
             {
-                Console.WriteLine("SocketException : {0}", se);
+                Trace.WriteLine(string.Format("SocketException : {0}", se));
             }
             catch (Exception e)
             {
-                Console.WriteLine("Unexpected exception : {0}", e);
+                Trace.WriteLine(string.Format("Unexpected exception : {0}", e));
             }
             response = string.Empty;
             return false;

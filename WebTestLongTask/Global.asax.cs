@@ -24,7 +24,10 @@ namespace WebTestLongTask
             Trace.WriteLine("Error");
         }
 
-
+        protected void Application_End(object sender, EventArgs e)
+        {
+            Default.LongTaskCancelation.Cancel();   
+        }
 
     }
 }
