@@ -240,8 +240,7 @@ namespace WebTestLongTask
         }
 
         private static void RunCommunicationInThread(object workerState)
-        {
-            Thread.CurrentThread.Priority = ThreadPriority.Highest;
+        {            
 
             var state = (WorkerState)workerState;
             IClient client = state.Client;
