@@ -141,9 +141,9 @@ namespace WebTestLongTask
                 {
                     clients = new List<IClient>(workerAmount);
                     var taskList = new List<Task>();
-                    CancellationTokenSource cts = new CancellationTokenSource();
-                    var factory = new TaskFactory(cts.Token, TaskCreationOptions.LongRunning, TaskContinuationOptions.LongRunning, null);
-                    for (int i = 0; i < workerAmount; i++)
+                    
+                    var factory = new TaskFactory(LongTaskCancelation.Token, TaskCreationOptions.LongRunning, TaskContinuationOptions.LongRunning, null);
+                    for (int i = 0; i < workerAmount;   i++)
                     {
                         clients.Add(GetClient(clientType));
                         var st = new WorkerState
@@ -153,7 +153,7 @@ namespace WebTestLongTask
                             WorkerId = "Task " + i,
                             Event = new ManualResetEvent(false)
                         };
-                        taskList.Add(factory.StartNew(RunCommunicationInTask, st, cts.Token));
+                        taskList.Add(factory.StartNew(RunCommunicationInThread, st, LongTaskCancelation.Token));
                     }
                     Task[] arr = taskList.ToArray();
                     Task.WaitAll(arr);
@@ -173,7 +173,7 @@ namespace WebTestLongTask
                             WorkerId = "QueueTask " + i,
                             Event = new ManualResetEvent(false)
                         };
-                        HostingEnvironment.QueueBackgroundWorkItem(ct => RunCommunicationInThread(st));
+                        HostingEnvironment.QueueBackgroundWorkItem(ct => RunCommunicationInTaskAsync(st));
                         states.Add(st);
                     }
 
@@ -241,6 +241,8 @@ namespace WebTestLongTask
 
         private static void RunCommunicationInThread(object workerState)
         {
+            Thread.CurrentThread.Priority = ThreadPriority.Highest;
+
             var state = (WorkerState)workerState;
             IClient client = state.Client;
             string threadId = state.WorkerId;
@@ -273,7 +275,7 @@ namespace WebTestLongTask
             ev.Set();
         }
 
-        private void RunCommunicationInTask(object workerState)
+        private async void RunCommunicationInTaskAsync(object workerState)
         {
             var state = (WorkerState)workerState;
             IClient client = state.Client;
@@ -288,13 +290,13 @@ namespace WebTestLongTask
                     for (int i = 0; i < 2000; i++)
                     {
                         string response;
-                        if (!client.Send(string.Format("{0} \t{1} Message id: {2}. \tHere is communication stuff to make message even more longer.", threadId, DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff"), i), out response))
+                        if (LongTaskCancelation.IsCancellationRequested || !client.Send(string.Format("{0} \t{1} Message id: {2}. \tHere is communication stuff to make message even more longer.", threadId, DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff"), i), out response))
                         {
                             client.Close();
                             ev.Set();
                             return;
                         }
-                        Task.Delay(state.SleepTime);
+                       await Task.Delay(state.SleepTime, LongTaskCancelation.Token).ConfigureAwait(false);
                     }
                 }
             }
@@ -305,6 +307,10 @@ namespace WebTestLongTask
             }
             ev.Set();
         }
+
+
+
+        
 
     }
 
