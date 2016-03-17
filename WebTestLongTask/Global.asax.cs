@@ -27,6 +27,7 @@ namespace WebTestLongTask
         protected void Application_End(object sender, EventArgs e)
         {
             Default.LongTaskCancelation.Cancel();   
+            PureTask.TokenSource.Cancel();
         }
 
     }
