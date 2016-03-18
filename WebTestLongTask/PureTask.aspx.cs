@@ -58,7 +58,8 @@ namespace WebTestLongTask
         private async void RunCommunicationInTaskAsync(CancellationToken token, int delay, int workerId)
         {          
 
-            Communicator comm = null;            
+            Communicator comm = null;
+            int sleep = Math.Max(delay - 10, 10);
             try
             {
                 comm = new Communicator(txtIpdAddress.Text, 11000, workerId);
@@ -67,14 +68,14 @@ namespace WebTestLongTask
 
                 for (int i = 0; i < 2000; i++)
                 {
-
+                    var timer = Task.Delay(sleep, token).ConfigureAwait(false);
                     bool isWorking = await comm.ReadData(token).ConfigureAwait(false);
                     if (!isWorking)
                     {
                         comm.IsWorking = false;
                         break;
-                    }                        
-                    await Task.Delay(delay, token).ConfigureAwait(false);                    
+                    }
+                    await timer;
                 }
 
                 //TODO !comm.IsWorkint restart ....

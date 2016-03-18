@@ -16,7 +16,7 @@ namespace WebTestLongTask
 {
     public partial class Default : System.Web.UI.Page
     {
-                
+
         public static CancellationTokenSource LongTaskCancelation = new CancellationTokenSource();
 
         protected void Page_Load(object sender, EventArgs e)
@@ -141,9 +141,9 @@ namespace WebTestLongTask
                 {
                     clients = new List<IClient>(workerAmount);
                     var taskList = new List<Task>();
-                    
+
                     var factory = new TaskFactory(LongTaskCancelation.Token, TaskCreationOptions.LongRunning, TaskContinuationOptions.LongRunning, null);
-                    for (int i = 0; i < workerAmount;   i++)
+                    for (int i = 0; i < workerAmount; i++)
                     {
                         clients.Add(GetClient(clientType));
                         var st = new WorkerState
@@ -162,7 +162,7 @@ namespace WebTestLongTask
                 else if (workerType == WorkerType.QueueTask)
                 {
                     clients = new List<IClient>(workerAmount);
-                    
+
                     for (int i = 0; i < workerAmount; i++)
                     {
                         clients.Add(GetClient(clientType));
@@ -240,38 +240,41 @@ namespace WebTestLongTask
         }
 
         private static void RunCommunicationInThread(object workerState)
-        {            
+        {
 
             var state = (WorkerState)workerState;
             IClient client = state.Client;
             string threadId = state.WorkerId;
             ManualResetEvent ev = state.Event;
-
-            try
+            
+            using (var timerEvent = new AutoResetEvent(false))
+            using (var timer = new System.Threading.Timer(st => { timerEvent.Set(); }, null, state.SleepTime, state.SleepTime))
             {
-
-                if (client.IsConnected)
+                try
                 {
-                    for (int i = 0; i < 2000; i++)
+                    if (client.IsConnected)
                     {
-                        string response;
-                        if (LongTaskCancelation.IsCancellationRequested || !client.Send(string.Format("{0} \t{1} Message id: {2}. \tHere is communication stuff to make message even more longer.", threadId, DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff"), i), out response))
+                        for (int i = 0; i < 2000; i++)
                         {
-                            client.Close();
-                            ev.Set();
-                            return;
+                            string response;
+                            if (LongTaskCancelation.IsCancellationRequested || !client.Send(string.Format("{0} \t{1} Message id: {2}. \tHere is communication stuff to make message even more longer.", threadId, DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff"), i), out response))
+                            {
+                                client.Close();
+                                ev.Set();
+                                return;
+                            }
+                            timerEvent.WaitOne();
                         }
-                        Thread.Sleep(state.SleepTime);
-                        
                     }
                 }
-            }
-            catch (Exception e)
-            {
+                catch (Exception e)
+                {
 
-                System.Diagnostics.Trace.WriteLine(e);
+                    System.Diagnostics.Trace.WriteLine(e);
+                }
+                ev.Set();
             }
-            ev.Set();
+
         }
 
         private async void RunCommunicationInTaskAsync(object workerState)
@@ -280,7 +283,7 @@ namespace WebTestLongTask
             IClient client = state.Client;
             string threadId = state.WorkerId;
             ManualResetEvent ev = state.Event;
-
+            int sleep = Math.Max(state.SleepTime - 10, 10);
             try
             {
 
@@ -288,6 +291,7 @@ namespace WebTestLongTask
                 {
                     for (int i = 0; i < 2000; i++)
                     {
+                        var timer = Task.Delay(sleep, LongTaskCancelation.Token).ConfigureAwait(false);
                         string response;
                         if (LongTaskCancelation.IsCancellationRequested || !client.Send(string.Format("{0} \t{1} Message id: {2}. \tHere is communication stuff to make message even more longer.", threadId, DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff"), i), out response))
                         {
@@ -295,7 +299,7 @@ namespace WebTestLongTask
                             ev.Set();
                             return;
                         }
-                       await Task.Delay(state.SleepTime, LongTaskCancelation.Token).ConfigureAwait(false);
+                        await timer;
                     }
                 }
             }
@@ -309,7 +313,7 @@ namespace WebTestLongTask
 
 
 
-        
+
 
     }
 
